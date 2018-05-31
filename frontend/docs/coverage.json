@@ -1,0 +1,26 @@
+{
+  "coverage": "0%",
+  "expectCount": 7,
+  "actualCount": 0,
+  "files": {
+    "src/api/utils/constants.js": {
+      "expectCount": 2,
+      "actualCount": 0,
+      "undocumentLines": [
+        1,
+        3
+      ]
+    },
+    "src/registerServiceWorker.js": {
+      "expectCount": 5,
+      "actualCount": 0,
+      "undocumentLines": [
+        11,
+        21,
+        55,
+        84,
+        111
+      ]
+    }
+  }
+}
