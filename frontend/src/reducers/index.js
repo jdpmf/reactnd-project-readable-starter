@@ -43,6 +43,7 @@ export const posts = (state=inicialState, action) => {
             },
             allIds : action.posts.map(p => p.id)
           }
+          return newState
         })
         return newState;
 
@@ -143,6 +144,7 @@ export const comments = (state=inicialState, action) => {
               },
               allIds : action.comments.map(c => c.id)
             }
+            return newState;
           })
         return newState;
 

@@ -1,126 +1,127 @@
 import React, { Component } from 'react'
-import logo from 'logo.svg';
 import 'App.css';
 import { getAll } from 'api/categories'
-import { connect } from 'react-redux'
-import actions from 'actions'
+import { Link } from 'react-router-dom'
+import ListPosts from 'screens/ListPosts'
 
 class App extends Component {
 
   state = {
-    categories: []
+    categories: [{"name":"todos","path":"/"}],
+    categorySelected: "todos",
+    ordenation: "1"
   }
 
   componentDidMount() {
 
-    getAll().then((result) => this.setState({
-      categories: result.categories
-    }))
+    getAll().then((result) => {
 
-    this.props.getAllPost()
-    .then(result => {
-      result.posts.map(p => this.props.getAllComment(p.id))
+      let categories = result.categories.map(cat => {
+        return {
+          name: cat.name,
+          path: "/"+cat.path
+        }})
+
+      this.setState({
+        categories: this.state.categories.concat(categories)
+      })
+
     })
 
   }
 
 
-  render() {
+  sortPostEvent = (event) => {
 
-    const { comments, disableComment, addComment, editComment, upComment, downComment, getAllPost, getAllComment } = this.props
+      this.setState({
+        ordenation: event.target.value
+      })
+
+      this.props.posts.sort(this.sortPosts())
+
+  }
+
+  sortPosts = () => {
+
+    if(this.state.ordenation === "1"){
+
+        return this.sortByVoteScore
+
+    }else{
+
+      return this.sortByDate
+
+    }
+
+  }
+
+  sortByVoteScore = (a,b) => {
+
+    return a.voteScore > b.voteScore ? -1 : a.voteScore < b.voteScore ? 1 : 0
+
+  }
+
+
+  sortByDate = (a,b) => {
+
+      return a.timestamp > b.timestamp ? -1 : a.timestamp < b.timestamp ? 1 : 0
+
+  }
+
+  render() {
 
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          {
-            JSON.stringify(this.state.categories)
-          }
-          To get started, edit <code>src/App.js</code> and save to reload.
+        <div className="wrapper">
+
+          <div className="header-wrapper">
+
+            <div className="header">
+
+              <div className="logo">
+
+                <h1><Link to="/">URR BLOGGER</Link></h1>
+
+                <p>Blog de Udacity, Redux e React</p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <div className="menu">
+
             <ul>
               {
-                  this.props.posts.map(post => {
-                    return <li>
-                      <div>
-                      {post.id} : { JSON.stringify(post.comments)}
-                      {post.comments.map(comment => comment.body)}
-                      </div>
-                    </li>
+                this.state.categories.map(cat => {
 
-                  })
+                    const path = `/${cat.path}`
+
+                    if(cat.name === this.state.categorySelected) {
+                      return <li key={cat.path} className="current_page_item"><Link to={path}>{cat.name}</Link></li>
+                    }else {
+                      return <li key={cat.path} onClick={() => this.setState({categorySelected: cat.name})}><Link to={cat.path}>{cat.name}</Link></li>
+                    }
+                })
               }
-             </ul>
-             <button onClick={(event) => (disableComment('894tuq4ut84ut8v4t8wun89g'))}>Excluir</button>
+            </ul>
 
-             <button onClick={(event) => {addComment({
-                                                parentId: "8xf0y6ziyjabvozdd253nd",
-                                                timestamp: 1468166872634,
-                                                body: 'Hi there! I am a COMMENT.',
-                                                author: 'thingtwo',
-                                                voteScore: 6,
-                                                deleted: false,
-                                                parentDeleted: false
-                                              })
+            <select className="select" onChange={this.sortPostEvent} value={this.state.ordenation}>
+              <option value="1">VoteScore</option>
+              <option value="2">Data de criação</option>
+            </select>
 
-                                            }}>Adicionar</button>
+            <button className="addPostButton">Nova postagem</button>
 
+          </div>
 
-             <button onClick={(event) => (editComment('894tuq4ut84ut8v4t8wun89g',{author: 'jessica'}))}>Editar</button>
+          <ListPosts category="react" />
 
-              <button onClick={(event) => (upComment('894tuq4ut84ut8v4t8wun89g'))}>UP</button>
-
-              <button onClick={(event) => (downComment('894tuq4ut84ut8v4t8wun89g'))}>Down</button>
-
-              <button onClick={(event) => (getAllPost())}>get all</button>
-
-        </p>
+        </div>
       </div>
     );
   }
 }
 
-const mapStateToProps = ({comments, posts}) => {
-
-    return {
-      posts : posts.allIds.map(p => {
-        return {
-                ...posts.byId[p],
-                comments: comments.allIds.filter(c => {
-                  if(p === comments.byId[c].parentId)
-                    return c
-                }).map(c => comments.byId[c])
-                }
-      })
-    }
-   /* post: Object.values(posts).map((post) => ({
-      post,
-      comments: comments.map((comment) => ({
-        [comment.id]: comment
-      }))
-    }))*/
-
-}
-
-const mapDispatchToProps = (dispatch) => {
-
-  return {
-
-    getAllComment: (id) => dispatch(actions.comment.getAllComment(id)),
-    disableComment: (id) => dispatch(actions.comment.disableComment(id)),
-    addComment: (comment) => dispatch(actions.comment.addComment(comment)),
-    editComment: (id, comment) => dispatch(actions.comment.editComment(id, comment)),
-    upComment: (id) => dispatch(actions.comment.upVoteComment(id)),
-    downComment: (id) => dispatch(actions.comment.downVoteComment(id)),
-    getAllPost: () => dispatch(actions.post.getAllPost())
-
-  }
-
-}
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(App)
+export default App
